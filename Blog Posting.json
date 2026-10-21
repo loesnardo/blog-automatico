@@ -1,0 +1,106 @@
+{
+  "name": "Blog Posting",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n\"html\": \"<h1>Sample Blog Post with Images</h1><br><p>Welcome to this sample blog post. Below are examples of how to include images using the &lt;ing@gt; tag with working URLs.</p><br><h2>Example 1: Displaying a Cat Image</h2><br><p>Here's an image of a cat:</p><br><img src=\\\"https://cdn2.thecatapi.com/images/MTY3OOIyMQ.jpg\\\" alt=\\\"A cute cat\\\" width =\\\"500\\\" height=\\\"600\\\"><br><h2>Example 2: Displaying a Dog Image</h2><br><p>Here's an image of a dog:</p><br><img src=\\\"https://images.dog.ceo/breeds/labrador/n02099712_5646.jpg\\\" alt=\\\"A happy dog\\\" width =\\\"500\\\" height=\\\"600\\\"><br><h2>Example 3: Displaying a Placeholder Image</h2><br><p>Here's a placeholder image:</p><br><img src=\\\"https://via.placeholder.com/150\\\" alt=\\\"Placeholder image\\\" width =\\\"150\\\" height=\\\"150\\\"><br><p>Thank you for reading this sample blog post. The images above demonstrate how to use the &lt;ing@gt; tag with different URLs display images in your HTML content.</p>\",\n\n\"title\": \"Title of Blog\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6c09a2ac-3a6c-4b81-9f10-8d16d8dcb70c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.title }}",
+        "additionalFields": {
+          "content": "={{ $json.html }}",
+          "status": "draft",
+          "postTemplate": {
+            "values": {
+              "template": "elementor_theme"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        304,
+        0
+      ],
+      "id": "a03f8b92-b07d-4255-baa3-4bfc65e5c248",
+      "name": "Create a post",
+      "credentials": {
+        "wordpressApi": {
+          "id": "XaUxffB4wuMxsH4d",
+          "name": "SelvacriptoAgent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6eff0a2d-c5aa-4d86-9507-1d96f2b9d1e1",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "cead40df-d9b9-4553-8647-7dab06819d46",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a post": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e8ec62a0-81f1-4c1d-8413-87b658b51326",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "95efa5ab6a4339c7b600e395ba84f052025d1ae01bca7e608fe2fcab87b97138"
+  },
+  "id": "MpwU78L9pCneHGvi",
+  "tags": []
+}

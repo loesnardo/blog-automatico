@@ -1,0 +1,669 @@
+{
+  "name": "AutomacaoBlog",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "452c2c88-aab7-403a-b3b8-8873e8bb7f7a",
+      "name": "Telegram Trigger",
+      "webhookId": "56ca220a-4697-4390-85c4-ccd3be70bace",
+      "credentials": {
+        "telegramApi": {
+          "id": "q2ZqgX4ZkmmPTw6U",
+          "name": "BlogAgent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appSUA_BASE_AIRTABLE",
+          "mode": "list",
+          "cachedResultName": "Agent Blog",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSUA_TABELA_1",
+          "mode": "list",
+          "cachedResultName": "Preferences",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE/tblSUA_TABELA_1"
+        },
+        "returnAll": false,
+        "limit": 20,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        -128
+      ],
+      "id": "f979dcf6-816f-411b-9a96-f259349ad931",
+      "name": "Preferences",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1cM9qlztt3ZoKevF",
+          "name": "Blog Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appSUA_BASE_AIRTABLE",
+          "mode": "list",
+          "cachedResultName": "Agent Blog",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSUA_TABELA_2",
+          "mode": "list",
+          "cachedResultName": "Keywords",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE/tblSUA_TABELA_2"
+        },
+        "returnAll": false,
+        "limit": 20,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        96
+      ],
+      "id": "c423b6b7-b316-454d-a546-078495aecb20",
+      "name": "Keywords",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1cM9qlztt3ZoKevF",
+          "name": "Blog Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Preferences",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -128
+      ],
+      "id": "51423593-2740-4360-a4cc-69b55615fd3d",
+      "name": "Aggregate Preferences"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Keywords",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        416,
+        96
+      ],
+      "id": "12a6aa04-f0f9-4025-a6fc-8ef59316cd18",
+      "name": "Aggregate Keywords"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        -16
+      ],
+      "id": "f6145af6-3ab2-4bb1-b0e2-ebca798a0632",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "=# PROMPT DO SISTEMA\n\nVocê é um assistente de blog. Seu papel principal é ajudar a criar posts de blog (rascunhados em HTML) e consultar o usuário sobre solicitações relacionadas ao blog. Use as seguintes diretrizes e etapas em seu fluxo de trabalho.\n\n--------------------------------------\n\n## 1) VISÃO GERAL DO FLUXO DE TRABALHO\n\nFluxo típico de 4 etapas:\n1. **Discutir ideias de blog**: Faça brainstorm de tópicos relevantes para o usuário.\n2. **Rascunhar imagens**: Solicite e compartilhe imagens com o usuário para feedback.\n3. **Rascunhar um esboço**: Forneça um esboço breve e estruturado (não o post completo) para confirmação.\n4. **Publicar post**: Uma vez confirmado, crie o post completo do blog em HTML\n\n**Nota**: Você pode sair deste fluxo se o usuário solicitar, mas geralmente siga essas quatro etapas.\n\n--------------------------------------\n\n## 2) FERRAMENTAS E CAPACIDADES DE APRIMORAMENTO:\n\n- **add_preference**: Use para adicionar uma nova \"preferência\" em 1-2 frases ou menos. Essas preferências servem para capturar informações sobre estilo, marca, marketing, SEO ou qualquer outro detalhe que possa ajudar a melhorar futuros posts do blog.\n- **add_keyword**: Use para adicionar \"Meta Palavras-chave\" relevantes que você descobrir.\n  - Palavras-chave: As palavras-chave do panorama geral que você deseja espalhar pelo seu post.\n\nVocê deve sempre seguir as preferências existentes e meta palavras-chave definidas anteriormente se forem relevantes para a solicitação atual.\n\n--------------------------------------\n\n## 3) GERAÇÃO DE IMAGENS\n\n- **generate_image**: Use para solicitar uma imagem enviando JSON:\n  ```json\n  {\n    \"prompt\": \"seu prompt aqui\"\n  }\n  ```\n\n- Gere 1 imagem por vez, depois compartilhe o link com o usuário para confirmar se é aceitável para o post do blog. Se eles quiserem uma imagem diferente, esclareça e gere outra até ter confirmação final.\n\nNunca use uma imagem no post do blog que não tenha sido aprovada pelo usuário através da sua confirmação, após enviar uma prévia da imagem.\n\n--------------------------------------\n\n## 4) CRIAÇÃO DO POST DO BLOG\n\n1. **Formato do Post Final**: Use a ferramenta post_blog para entregar o post completo do blog uma vez que você tenha todos os detalhes. Por exemplo:\n   ```json\n   {\n     \"html\": \"<h1>Post de Blog Exemplo com Imagens</h1><br><p>Bem-vindo a este post de blog exemplo. Abaixo estão exemplos de como incluir imagens usando a tag &lt;img&gt; com URLs funcionais.</p><br><h2>Exemplo 1: Exibindo uma Imagem de Gato</h2><br><p>Aqui está uma imagem de um gato:</p><br><img src=\\\"https://cdn2.thecatapi.com/images/MTY3OOIyMQ.jpg\\\" alt=\\\"Um gato fofo\\\" width=\\\"500\\\" height=\\\"600\\\"><br><h2>Exemplo 2: Exibindo uma Imagem de Cachorro</h2><br><p>Aqui está uma imagem de um cachorro:</p><br><img src=\\\"https://images.dog.ceo/breeds/labrador/n02099712_5646.jpg\\\" alt=\\\"Um cachorro feliz\\\" width=\\\"500\\\" height=\\\"600\\\"><br><h2>Exemplo 3: Exibindo uma Imagem Placeholder</h2><br><p>Aqui está uma imagem placeholder:</p><br><img src=\\\"https://via.placeholder.com/150\\\" alt=\\\"Imagem placeholder\\\" width=\\\"150\\\" height=\\\"150\\\"><br><p>Obrigado por ler este post de blog exemplo. As imagens acima demonstram como usar a tag &lt;img&gt; com diferentes URLs para exibir imagens no seu conteúdo HTML.</p>\",\n     \"title\": \"Título do Blog\"\n   }\n   ```\n\n2. **Posicionamento de Imagens**: Ao adicionar imagens no post final, inclua-as com `<img src=\"...\" alt=\"...\" width=\"...\" height=\"...\">`.\n\n3. **Backlinks**: Insira backlinks inline relevantes da seguinte lista quando se encaixar naturalmente no conteúdo:\n   - https://selvacripto.com/ (home)\n   - https://selvacripto.com/category/analise-de-mercado/ (posts relacionados a análise de mercado)\n   - https://selvacripto.com/category/blockchain/ (posts relacionados a blockchain)\n   - https://selvacripto.com/category/criptomoedas/ (posts relacionados a criptomoedas)\n   - https://selvacripto.com/category/defi/ (posts relacionados a defi)\n   - https://selvacripto.com/category/seguranca-cripto/ (posts relacionados a segurança criptomoedas)\n   - https://selvacripto.com/category/web3/ (posts relacionados a web 3)\n   - https://selvacripto.com/blog/ (Todos os posts do blog)\n   - https://selvacripto.com/contato/ (página do formulário de contato, inclua call-to-action)\n\n4. **Marketing/SEO e Oferta**: Mantenha foco nos detalhes da empresa, assunto relevante e otimização SEO. Termine (ou espalhe dentro do) post do blog uma oferta clara ou convite para nos conectar usando o link acima se fizer sentido.\n\n--------------------------------------\n\n## 5) ESTILO DE COMUNICAÇÃO\n\n- **Formatação para Plataformas de Mensagens**: Para todo texto conversacional voltado ao usuário, você deve evitar usar caracteres de formatação Markdown. Especificamente, não use asteriscos simples (*) para itálico ou asteriscos duplos (**) para negrito. Isso garante compatibilidade de resposta e previne erros de formatação em plataformas externas. Transmita ênfase através de linguagem clara e direta ao invés de caracteres especiais.\n\n--------------------------------------\n\n## 6) PREFERÊNCIAS ATUAIS\n{{ \n  $json.Preferences.map(pref => `\n${pref[\"Preferences\"]}`).join('')\n}}\n\n--------------------------------------\n\n## 7) META PALAVRAS-CHAVE ATUAIS PARA TODO O SITE\n{{ \n  $json.Keywords.map(kw => `\n${kw[\"Keywords\"]}`).join('')\n}}\n\n--------------------------------------"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -16
+      ],
+      "id": "9d7758ca-8860-485e-af02-5ca0001adb47",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        304
+      ],
+      "id": "5508d197-51d6-42c5-a9c2-a8ada6863cf1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OG59nYXkPDmc4ydG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        304
+      ],
+      "id": "9ae60b83-2132-45ce-a7c9-fa75287654fb",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSUA_BASE_AIRTABLE",
+          "mode": "list",
+          "cachedResultName": "Agent Blog",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSUA_TABELA_2",
+          "mode": "list",
+          "cachedResultName": "Keywords",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE/tblSUA_TABELA_2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Keywords": "={{ $fromAI('add_keyword') }}"
+          },
+          "matchingColumns": [
+            "Keywords"
+          ],
+          "schema": [
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        896,
+        304
+      ],
+      "id": "c5a1f368-9e02-4917-aad3-df43c9d58c30",
+      "name": "add_keyword",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1cM9qlztt3ZoKevF",
+          "name": "Blog Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSUA_BASE_AIRTABLE",
+          "mode": "list",
+          "cachedResultName": "Agent Blog",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSUA_TABELA_1",
+          "mode": "list",
+          "cachedResultName": "Preferences",
+          "cachedResultUrl": "https://airtable.com/appSUA_BASE_AIRTABLE/tblSUA_TABELA_1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Preferences": "={{ $fromAI('add_preference') }}"
+          },
+          "matchingColumns": [
+            "Preferences"
+          ],
+          "schema": [
+            {
+              "id": "Preferences",
+              "displayName": "Preferences",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        784,
+        304
+      ],
+      "id": "6eb1a3a1-1acc-46af-81a5-34c796322e01",
+      "name": "add_preference",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1cM9qlztt3ZoKevF",
+          "name": "Blog Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1296,
+        -16
+      ],
+      "id": "15fec2c1-0924-4418-b797-410ede28aeea",
+      "name": "Send a text message",
+      "webhookId": "05b640f5-33c9-4acd-a834-7b5545316eea",
+      "credentials": {
+        "telegramApi": {
+          "id": "q2ZqgX4ZkmmPTw6U",
+          "name": "BlogAgent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "post blogs using raw html here.",
+        "workflowId": {
+          "__rl": true,
+          "value": "MpwU78L9pCneHGvi",
+          "mode": "list",
+          "cachedResultName": "Blog Posting"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "html": "={{ $fromAI('html', ``, 'string') }}",
+            "title": "={{ $fromAI('title', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Prompt"
+          ],
+          "schema": [
+            {
+              "id": "html",
+              "displayName": "html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        304
+      ],
+      "id": "791e5d5a-f6f1-4d2c-8491-4d13b9b22440",
+      "name": "post_blog"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool with a prompt to generate an image for your blog post.",
+        "workflowId": {
+          "__rl": true,
+          "value": "uwa06Fx07nRXAWdf",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt_upsampling": false,
+            "Prompt": "={{ $fromAI('Prompt', ``, 'string') }}",
+            "height": 768,
+            "safety_tolerance": 2,
+            "seed": 42,
+            "output_format": "jpeg"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Prompt",
+              "displayName": "Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "prompt_upsampling",
+              "displayName": "prompt_upsampling",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            },
+            {
+              "id": "seed",
+              "displayName": "seed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "safety_tolerance",
+              "displayName": "safety_tolerance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            },
+            {
+              "id": "output_format",
+              "displayName": "output_format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        304
+      ],
+      "id": "c3b2f364-b50a-4033-9756-9f24174af38a",
+      "name": "generate_image"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Limpar caracteres que podem causar problemas\nlet cleanText = items[0].json.output;\n\n// Remover ou escapar asteriscos\ncleanText = cleanText.replace(/\\*/g, '');\n\n// Converter \\n para quebras de linha reais\ncleanText = cleanText.replace(/\\\\n/g, '\\n');\n\n// Limpar aspas duplas problemáticas\ncleanText = cleanText.replace(/\"/g, '\"');\n\nreturn [{\n  json: {\n    ...items[0].json,\n    cleanOutput: cleanText\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -16
+      ],
+      "id": "d44b46a3-d842-4ec4-b911-4313142de9b9",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Preferences",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preferences": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Preferences",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keywords": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Preferences": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Keywords": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add_keyword": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add_preference": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post_blog": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_image": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85ac7aa6-4add-4711-b5a0-372411225bc1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "95efa5ab6a4339c7b600e395ba84f052025d1ae01bca7e608fe2fcab87b97138"
+  },
+  "id": "ZpbFbneI61kmYB8v",
+  "tags": []
+}

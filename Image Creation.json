@@ -1,0 +1,155 @@
+{
+  "name": "Image Creation",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"Prompt\": \"{{ $json.query.prompt }}\",\n  \"height\": 768,\n  \"prompt_upsampling\": false,\n  \"seed\": 42,\n  \"safety_tolerance\": 2,\n  \"output_format\": \"jpeg\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a15405f2-b685-462d-8efb-6de2aa15d8e3",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash-exp-image-generation",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash-exp-image-generation"
+        },
+        "prompt": "={\n  \"Prompt\": {{ $json.Prompt }},\n  \"height\": {{ $json.height }},\n  \"prompt_upsampling\": {{ $json.prompt_upsampling }},\n  \"seed\": {{ $json.seed }},\n  \"safety_tolerance\": {{ $json.safety_tolerance }},\n  \"output_format\": {{ $json.output_format }}\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b336917a-50d5-4648-9997-ac0a798d79eb",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OG59nYXkPDmc4ydG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://seu-site.com/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic YmxvZ2FnZW50Oks2ODJjZnhmRyhNeHY2S2F1TlgzSURXUQ=="
+            },
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename={{ $json.fileName }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "27fa0ff9-849f-45cd-8679-c464a204d824",
+      "name": "HTTP Request",
+      "credentials": {
+        "wordpressApi": {
+          "id": "XaUxffB4wuMxsH4d",
+          "name": "SelvacriptoAgent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5128a810-2f99-403d-9462-dc72170b8845",
+              "name": "link",
+              "value": "={{ $json.guid.raw }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "ec6cc3de-1fe6-4555-a935-4bd5861759f9",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0b6670dd-428c-4653-8385-ce571ca22a8e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "95efa5ab6a4339c7b600e395ba84f052025d1ae01bca7e608fe2fcab87b97138"
+  },
+  "id": "uwa06Fx07nRXAWdf",
+  "tags": []
+}
